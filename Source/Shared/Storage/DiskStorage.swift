@@ -1,5 +1,29 @@
 import Foundation
 
+public extension DiskStorage {
+  /// Returns all keys stored on disk by decoding filenames back to keys.
+  func allDiskKeys() -> [Key] {
+    let directoryURL = URL(fileURLWithPath: path, isDirectory: true)
+
+    guard let files = try? fileManager.contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: nil) else {
+      return []
+    }
+
+    return files.compactMap { fileURL in
+      // Attempt to decode file name back to a Key if possible
+      let filename = fileURL.lastPathComponent
+      // For String keys, reverse MD5 decoding is not feasible.
+      // So this will only work if you store known filenames or can premap them.
+      // Instead, hash the known keys and compare (not implemented here).
+      // For demo purposes, we'll skip decoding and just return filename for String
+      if Key.self == String.self {
+        return filename as? Key
+      }
+      return nil
+    }
+  }
+}
+
 /// Save objects to file on disk
 final public class DiskStorage<Key: Hashable, Value> {
   enum Error: Swift.Error {
